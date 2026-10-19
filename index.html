@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROUTINE — Về Routine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    /* ===== COLORS =====
+       Change these to re-theme the entire site.
+       --background : main page background (white)
+       --cream      : soft off-white used for card labels / subtle fills
+       --text       : main body + heading text color (near-black)
+       --muted      : secondary text — captions, descriptions, labels
+       --coffee     : accent color — used sparingly for eyebrows, links, numbers
+       --line       : hairline border color used between sections/cards
+    */
+    --background: #ffffff;
+    --cream: #f5f3ef;
+    --text: #111111;
+    --muted: #777777;
+    --coffee: #6f5141;
+    --line: #e6e3dd;
+
+    /* ===== TYPOGRAPHY =====
+       --font-heading : used for nav, logo, all headlines, labels, numbers
+       --font-body    : used for paragraphs / descriptions
+       Loaded from Google Fonts at the top of <head>.
+    */
+    --font-heading: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+    --font-body: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+    /* ===== LAYOUT / SPACING =====
+       --max-width : the maximum width the page content will stretch to
+       --gutter    : left/right page padding (auto-shrinks on smaller screens)
+       --ease      : the animation curve used for hover/scroll transitions
+    */
+    --max-width: 1360px;
+    --gutter: clamp(20px, 4vw, 64px);
+    --ease: cubic-bezier(.22,.61,.36,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--background);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--text); color:var(--background); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+  }
+
+  /* ===== PAGE WIDTH =====
+     ".wrap" centers content and caps it at --max-width (1360px) on large
+     screens, with side padding (--gutter) that auto-shrinks on mobile.
+     Used inside every section — this is what keeps text/images aligned.
+  */
+  .wrap{ max-width:var(--max-width); margin:0 auto; padding:0 var(--gutter); }
+
+  /* ============================================================
+     HEADER (shared across both views)
+     ============================================================ */
+  header.site{
+    position:sticky; top:0; z-index:50;
+    background:var(--background);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:72px;
+  }
+  .nav-side{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    flex:1;
+  }
+  .nav-side.right{ justify-content:flex-end; }
+  .nav-link{
+    font-family:var(--font-heading);
+    font-size:14px;
+    font-weight:500;
+    letter-spacing:0.02em;
+    color:var(--text);
+    padding:4px 0;
+    position:relative;
+    white-space:nowrap;
+  }
+  .nav-link.active{ font-weight:700; }
+  .nav-link.active::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:-24px;
+    height:2px; background:var(--text);
+  }
+  .nav-row{ position:relative; }
+  .search-icon{
+    width:18px; height:18px;
+    flex:none;
+    cursor:pointer;
+  }
+  .logo{
+    font-family:var(--font-heading);
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:0.02em;
+  }
+
+  .breadcrumb{
+    padding:18px 0;
+    font-family:var(--font-heading);
+    font-size:13px;
+    font-weight:500;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+    width:fit-content;
+  }
+  .breadcrumb:hover{ color:var(--text); }
+
+  /* ============================================================
+     VIEWS
+     ============================================================ */
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* reveal on scroll */
+  .reveal{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  }
+  .reveal.is-visible{ opacity:1; transform:translateY(0); }
+
+  /* ===== IMAGE BLOCKS =====
+     ".ph" (photo) is the container for every image on the site.
+     - The gradient background shows automatically if an image file is
+       missing, so the layout never looks "broken" while you add photos.
+     - Image SIZE / crop is controlled entirely by the container's
+       aspect-ratio (set per-section further down, e.g. "aspect-ratio:3/4").
+       Swap the aspect-ratio value to change an image's shape/height.
+     - Images zoom in slightly (2%) on hover — this happens automatically,
+       no need to edit anything when replacing an image.
+  */
+  .ph{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(150deg, #ded4c4 0%, #b9a688 60%, #8c765a 100%);
+  }
+  .ph-inner{
+    position:absolute; inset:0;
+    transition:transform 0.6s var(--ease);
+  }
+  .ph-inner img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover; /* crops the image to fill its box without stretching */
+  }
+  .ph:hover .ph-inner{ transform:scale(1.02); }
+  .ph-tag{
+    position:absolute; left:14px; bottom:14px;
+    font-family:var(--font-heading);
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:#fff;
+    background:rgba(17,17,17,0.55);
+    padding:6px 10px;
+  }
+
+  /* ============================================================
+     VIEW 1 — VỀ ROUTINE HUB
+     ============================================================ */
+  .hub-hero{
+    padding:56px 0 40px;
+  }
+  .hub-hero h1{
+    font-family:var(--font-heading);
+    font-size:clamp(30px,4vw,44px);
+    font-weight:700;
+    margin:0;
+    letter-spacing:0.01em;
+  }
+
+  .about-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+    padding-bottom:56px;
+  }
+
+  .about-card{
+    display:block;
+    cursor:default;
+  }
+  .about-card.clickable{ cursor:pointer; }
+  .card-img{ aspect-ratio:3/4; margin-bottom:16px; }
+  .card-title{
+    font-family:var(--font-heading);
+    font-size:17px;
+    font-weight:700;
+    margin:0 0 6px;
+  }
+  .card-desc{
+    font-family:var(--font-body);
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--muted);
+    margin:0;
+  }
+  .card-meta{
+    font-family:var(--font-heading);
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:0.03em;
+    color:var(--coffee);
+    margin-top:8px;
+  }
+  .card-cta{
+    display:inline-block;
+    margin-top:10px;
+    font-family:var(--font-heading);
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    background-image:linear-gradient(var(--text), var(--text));
+    background-repeat:no-repeat;
+    background-position:0 100%;
+    background-size:0% 1px;
+    transition:background-size 0.35s var(--ease);
+    padding-bottom:2px;
+  }
+  .about-card.clickable:hover .card-cta{ background-size:100% 1px; }
+  .about-card.clickable:hover .card-title{ color:var(--coffee); transition:color .3s; }
+
+  /* sustainability card gets subtle emphasis via a top rule, not a full redesign */
+  .card-sustain .card-img::before{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(0deg, rgba(17,17,17,0.35), rgba(17,17,17,0) 55%);
+    z-index:1;
+  }
+
+  .stories-label{
+    font-family:var(--font-heading);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding:28px 0 20px;
+    border-top:1px solid var(--line);
+  }
+
+  .stories-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:32px;
+    padding-bottom:80px;
+    align-items:center;
+  }
+  .stories-grid .card-img{ aspect-ratio:16/9; margin-bottom:0; }
+  .stories-copy .card-title{ font-size:24px; }
+  .stories-copy .card-desc{ font-size:14.5px; max-width:46ch; }
+
+  @media (max-width:1080px){
+    .about-grid{ grid-template-columns:repeat(2,1fr); }
+    .stories-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width:600px){
+    .about-grid{ grid-template-columns:1fr; }
+    .nav-side{ gap:16px; }
+    .nav-link{ font-size:12.5px; }
+  }
+
+  /* ============================================================
+     VIEW 2 — SUSTAINABILITY LANDING
+     ============================================================ */
+  .eyebrow{
+    font-family:var(--font-heading);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--coffee);
+  }
+  .headline{
+    font-family:var(--font-heading);
+    font-weight:700;
+    letter-spacing:0.005em;
+    line-height:1.02;
+    margin:0;
+  }
+  .body-copy{
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.7;
+    color:var(--text);
+    max-width:54ch;
+  }
+  .muted{ color:var(--muted); }
+
+  /* ===== SECTION SPACING & BACKGROUNDS =====
+     Every section on the sustainability page (Hero, Coffee Lovers, Be a
+     Banana, Routine × LA VIET, Connect the Story, Timeline, Closing)
+     shares this one rule: white background (--background), 96px of
+     vertical breathing room, and a thin line separating it from the
+     next section. To change the spacing for ALL sections at once,
+     edit "96px" below. To change one section only, add a style="..."
+     override on that section's opening <section> tag in the HTML.
+  */
+  .sec{ padding:96px 0; border-bottom:1px solid var(--line); background:var(--background); }
+
+  /* --- intro --- */
+  .intro-grid{
+    display:grid;
+    grid-template-columns:1.3fr 0.7fr;
+    gap:56px;
+    align-items:end;
+  }
+  .intro-grid h1.headline{ font-size:clamp(34px,5.2vw,64px); margin:20px 0 28px; }
+  /* Shrunk slightly + right-aligned within its column (was stretching too large) */
+  .intro-visual{ aspect-ratio:3/4; width:100%; max-width:420px; margin-left:auto; }
+  @media (max-width:600px){
+    /* hero image stacks below the text instead of squeezing into a tiny column */
+    .intro-grid{ grid-template-columns:1fr; }
+    .intro-visual{ max-width:100%; margin-left:0; }
+  }
+  .intro-copy{ display:flex; flex-direction:column; gap:18px; }
+  .intro-copy p:last-child{ font-size:14px; color:var(--muted); max-width:44ch; }
+
+  /* --- section head pattern --- */
+  .sec-head{ margin-bottom:44px; }
+  .sec-head .headline{ font-size:clamp(30px,4.4vw,50px); margin-top:10px; }
+  .sec-sub{
+    font-family:var(--font-heading);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-top:8px;
+  }
+  /* longer descriptive line under a heading — sentence case, not a caption */
+  .sec-desc{
+    font-size:15px;
+    line-height:1.6;
+    color:var(--muted);
+    max-width:56ch;
+    margin-top:14px;
+  }
+
+  /* ===== IMPACT OVERVIEW (by-the-numbers dashboard) =====
+     One consolidated summary of every real figure already established
+     across the three material/community stories below — not new data,
+     just a Patagonia-style "by the numbers" roll-up of what's already
+     proven further down the page.
+  */
+  .impact-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:0;
+    border-top:1px solid var(--line);
+  }
+  .impact-stat{
+    padding:28px 24px 0 0;
+    border-right:1px solid var(--line);
+  }
+  .impact-stat:last-child{ border-right:none; }
+  .impact-stat:not(:first-child){ padding-left:24px; }
+  .impact-num{
+    font-family:var(--font-heading);
+    font-size:clamp(32px,4vw,48px);
+    font-weight:700;
+    line-height:1;
+    color:var(--text);
+  }
+  .impact-label{
+    font-family:var(--font-heading);
+    font-size:13px;
+    font-weight:600;
+    margin-top:10px;
+    color:var(--text);
+  }
+  .impact-sub{
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--muted);
+    margin-top:6px;
+  }
+  @media (max-width:900px){
+    .impact-grid{ grid-template-columns:1fr 1fr; }
+    .impact-stat{ border-right:none; border-bottom:1px solid var(--line); padding:24px 0 24px; }
+    .impact-stat:nth-child(odd){ padding-right:20px; }
+    .impact-stat:nth-child(even){ padding-left:20px; }
+  }
+  @media (max-width:560px){
+    .impact-grid{ grid-template-columns:1fr; }
+    .impact-stat{ padding:22px 0 !important; }
+  }
+
+  /* --- coffee lovers --- */
+  /* Coffee Lovers section now stacks vertically (copy → archive → campaign
+     images) instead of a 2-column layout, so the new archive strip can sit
+     between the material story and the Series 6 imagery. */
+  .cl-layout{ display:flex; flex-direction:column; gap:64px; }
+  .cl-copy .body-copy{ margin-bottom:32px; }
+
+  /* Two-column balance for the intro block: story + diagram on the left,
+     properties/explainer/stats as a sidebar on the right — fills the row
+     instead of leaving the right side empty on wide screens. */
+  .cl-intro-grid{ display:grid; grid-template-columns:1.3fr 0.9fr; gap:56px; align-items:start; }
+  .cl-side{ padding-top:4px; }
+  .cl-material-grid{ display:grid; grid-template-columns:1.3fr 0.9fr; gap:56px; align-items:start; margin-top:28px; }
+  .material-list{ list-style:none; margin:18px 0 0; padding:0; display:flex; flex-direction:column; gap:16px; }
+  .material-list li{
+    font-size:14.5px;
+    line-height:1.5;
+    color:var(--text);
+    padding-left:20px;
+    position:relative;
+  }
+  .material-list li::before{
+    content:"";
+    position:absolute; left:0; top:9px;
+    width:9px; height:1px;
+    background:var(--coffee);
+  }
+  @media (max-width:900px){
+    .cl-intro-grid{ grid-template-columns:1fr; gap:36px; }
+    .cl-material-grid{ grid-template-columns:1fr; gap:28px; }
+  }
+
+  .journey-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+    margin:32px 0 12px;
+    padding:24px 0;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .journey-step{
+    font-family:var(--font-heading);
+    font-size:clamp(14px,1.5vw,17px);
+    font-weight:600;
+    letter-spacing:0.01em;
+    line-height:1.3;
+  }
+  .journey-arrow{ color:var(--coffee); font-size:16px; }
+  .journey-step.hi{ color:var(--coffee); }
+
+  .cl-props{ display:flex; gap:22px; flex-wrap:wrap; margin:24px 0 40px; }
+  .cl-note{ font-size:13.5px; line-height:1.65; color:var(--muted); max-width:52ch; margin:-24px 0 32px; }
+  .cl-prop{
+    font-family:var(--font-heading);
+    font-size:12px; font-weight:600; letter-spacing:0.05em;
+    text-transform:uppercase; color:var(--text);
+    display:flex; align-items:center; gap:7px;
+  }
+  .cl-prop::before{ content:""; width:5px; height:5px; background:var(--coffee); }
+
+  .cl-stats{ display:flex; gap:36px; align-items:flex-end; flex-wrap:wrap; }
+  .stat-num{
+    font-family:var(--font-heading);
+    font-size:clamp(48px,6.5vw,80px);
+    font-weight:700; line-height:0.9;
+  }
+  .stat-cap{ font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-top:8px; font-family:var(--font-heading); }
+  .stat-series{ font-family:var(--font-heading); font-size:14px; font-weight:700; color:var(--coffee); }
+
+  /* Big campaign photo on the left, two detail shots stacked on the right —
+     fills the row width proportionally instead of a narrow left-anchored
+     block with dead space beside it. */
+  .cl-images{ display:grid; grid-template-columns:1.4fr 1fr; gap:14px; }
+  .cl-images .ph:first-child{ grid-column:1; grid-row:1 / span 2; }
+  .cl-images .ph:not(:first-child){ aspect-ratio:1/1; }
+  @media (max-width:700px){
+    .cl-images{ grid-template-columns:1fr; }
+    .cl-images .ph:first-child{ grid-column:1; grid-row:auto; aspect-ratio:16/10; }
+  }
+
+  /* ===== COFFEE LOVERS ARCHIVE (Series 1–6 overview) =====
+     A compact strip that proves Coffee Lovers is an ongoing series, not a
+     single drop. Series 1–5 are small, muted "past chapter" cards in one
+     row; Series 6 is a larger, higher-contrast "current chapter" card.
+     Image size for every card (Series 1-6) = --archive-thumb aspect-ratio
+     (3/4) — all six now share the exact same card/image size.
+  */
+  .cl-archive{
+    margin-top:8px;
+    padding-top:40px;
+    border-top:1px solid var(--line);
+  }
+  .archive-headline{
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:clamp(24px,3.2vw,38px);
+    line-height:1.06;
+    margin:12px 0 18px;
+  }
+  .archive-intro{
+    font-style:italic;
+    color:var(--muted);
+    font-size:14.5px;
+    max-width:58ch;
+    margin:0 0 36px;
+  }
+
+  /* All six series sit in one equal-width grid — no big/small split. */
+  .archive-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:14px; align-items:start; }
+  .archive-current-label{
+    display:block;
+    font-family:var(--font-heading);
+    font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--coffee);
+    margin-bottom:10px;
+  }
+
+  .archive-card{ display:flex; flex-direction:column; }
+  .archive-thumb{ aspect-ratio:3/4; margin-bottom:10px; }
+  .archive-num{ font-family:var(--font-heading); font-size:11px; font-weight:700; letter-spacing:0.04em; color:var(--muted); }
+  .archive-title{ font-family:var(--font-heading); font-size:13px; font-weight:600; margin:4px 0 0; color:var(--text); line-height:1.25; }
+  .archive-context{ display:block; font-size:11px; color:var(--muted); margin-top:2px; }
+  .archive-desc{
+    font-size:12px; line-height:1.5; color:var(--muted);
+    margin:0; max-height:0; opacity:0; overflow:hidden;
+    transition:max-height 0.4s var(--ease), opacity 0.4s var(--ease), margin-top 0.4s var(--ease);
+  }
+  .archive-card:hover .archive-desc,
+  .archive-card:focus-within .archive-desc{ max-height:90px; opacity:1; margin-top:6px; }
+  .archive-cta{
+    display:inline-block; margin-top:8px; width:fit-content;
+    font-family:var(--font-heading); font-size:11px; font-weight:600; color:var(--text);
+    background-image:linear-gradient(var(--text),var(--text));
+    background-repeat:no-repeat; background-position:0 100%; background-size:0% 1px;
+    transition:background-size 0.35s var(--ease); padding-bottom:1px;
+  }
+  .archive-card:hover .archive-cta{ background-size:100% 1px; }
+
+  /* Series 6 keeps a small "current chapter" badge (overlaid on the image,
+     not extra height) + always-visible description. Card/image SIZE now
+     matches Series 1-5 exactly, per request. */
+  .archive-current-badge{
+    position:absolute; top:10px; left:10px; z-index:1;
+    font-family:var(--font-heading);
+    font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+    color:#fff; background:var(--coffee);
+    padding:5px 9px;
+  }
+  .archive-card.current .archive-desc{ max-height:none; opacity:1; margin-top:6px; }
+
+  @media (max-width:1000px){
+    .archive-grid{ grid-template-columns:repeat(6,minmax(150px,1fr)); overflow-x:auto; padding-bottom:6px; }
+  }
+  @media (max-width:700px){
+    /* six collections become one horizontally-scrollable row */
+    .archive-grid{ grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:158px; overflow-x:auto; gap:14px; scroll-snap-type:x mandatory; padding-bottom:8px; }
+    .archive-card{ scroll-snap-align:start; }
+    .archive-desc{ max-height:none; opacity:1; margin-top:6px; } /* always visible — no hover on touch */
+  }
+
+  /* --- banana --- */
+  .banana-split{ display:grid; grid-template-columns:1fr 1fr; }
+  .banana-visual{ aspect-ratio:4/5; }
+  .banana-right{ padding:0 0 0 56px; display:flex; flex-direction:column; justify-content:center; gap:26px; }
+  .comp-row{ display:flex; align-items:baseline; gap:16px; }
+  .comp-num{ font-family:var(--font-heading); font-size:clamp(44px,5.6vw,68px); font-weight:700; line-height:1; }
+  .comp-label{ font-family:var(--font-heading); font-size:12px; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); }
+  .comp-bar{ height:4px; background:var(--line); margin:8px 0 20px; overflow:hidden; }
+  .comp-bar span{ display:block; height:100%; background:var(--coffee); }
+
+  @media (max-width:980px){
+    .banana-split{ grid-template-columns:1fr; }
+    .banana-right{ padding:36px 0 0; }
+  }
+
+  /* --- community --- */
+  .lv-top{ display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; margin-bottom:60px; }
+  .lv-number{ font-family:var(--font-heading); font-size:clamp(64px,9vw,120px); font-weight:700; line-height:0.9; }
+  .lv-number-cap{ font-family:var(--font-heading); font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-top:10px; }
+
+  .lv-timeline{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; position:relative; padding-top:24px; }
+  .lv-timeline::before{ content:""; position:absolute; top:0; left:0; right:0; height:1px; background:var(--line); }
+  .lv-fill{ position:absolute; top:0; left:0; height:1px; background:var(--coffee); width:0%; transition:width 1.5s var(--ease); }
+  .lv-item{ position:relative; padding-top:18px; }
+  .lv-item::before{ content:""; position:absolute; top:-4px; left:0; width:8px; height:8px; border-radius:50%; background:var(--background); border:1px solid var(--coffee); }
+  .lv-item.lit::before{ background:var(--coffee); }
+  .lv-year{ font-family:var(--font-heading); font-size:22px; font-weight:700; }
+  .lv-count{ font-size:13px; color:var(--muted); margin-top:4px; }
+
+  .lv-images{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:56px; }
+  .lv-images .ph{ aspect-ratio:3/4; }
+
+  @media (max-width:980px){
+    .lv-top{ grid-template-columns:1fr; }
+    .lv-timeline{ grid-template-columns:1fr; gap:24px; }
+    .lv-timeline::before{ display:none; }
+    .lv-item{ padding-left:20px; padding-top:0; border-left:1px solid var(--line); padding-bottom:6px; }
+    .lv-item::before{ top:1px; left:-4.5px; }
+    .lv-images{ grid-template-columns:1fr 1fr; }
+  }
+
+  /* --- connect --- */
+  .connect-chain{
+    margin-top:56px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:0;
+  }
+  .chain-item{
+    font-family:var(--font-heading);
+    font-size:clamp(13px,1.3vw,15px);
+    font-weight:600; letter-spacing:0.02em; text-transform:uppercase;
+    padding:12px 22px; border:1px solid var(--line); color:var(--muted);
+    transition:color .5s var(--ease), border-color .5s var(--ease), background .5s var(--ease);
+  }
+  .chain-item.on{ color:var(--background); background:var(--text); border-color:var(--text); }
+  .chain-sep{ color:var(--line); padding:0 14px; }
+  @media (max-width:600px){
+    .connect-chain{ flex-direction:column; align-items:flex-start; gap:10px; }
+    .chain-sep{ display:none; }
+  }
+
+  /* --- brand timeline --- */
+  .btl-track{ position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding-top:28px; }
+  .btl-track::before{ content:""; position:absolute; top:0; left:0; right:0; height:1px; background:var(--line); }
+  .btl-fill{ position:absolute; top:0; left:0; height:1px; background:var(--coffee); width:0%; transition:width 1.7s var(--ease); }
+  .btl-item{ position:relative; padding-top:20px; }
+  .btl-item::before{ content:""; position:absolute; top:-4.5px; left:0; width:9px; height:9px; border-radius:50%; background:var(--background); border:1px solid var(--coffee); }
+  .btl-item.lit::before{ background:var(--coffee); }
+  .btl-year{ font-family:var(--font-heading); font-size:20px; font-weight:700; }
+  .btl-text{ font-size:13.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  @media (max-width:980px){
+    .btl-track{ grid-template-columns:1fr; gap:24px; }
+    .btl-track::before{ display:none; }
+    .btl-item{ padding-left:20px; padding-top:0; border-left:1px solid var(--line); padding-bottom:4px; }
+    .btl-item::before{ top:1px; left:-4.5px; }
+  }
+
+  /* --- closing --- */
+  .closing{ text-align:left; }
+  .closing .headline{ font-size:clamp(32px,5.4vw,60px); max-width:18ch; }
+  .closing .body-copy{ margin-top:24px; }
+  .closing-ctas{ margin-top:36px; display:flex; align-items:center; gap:28px; flex-wrap:wrap; }
+  .btn-primary{
+    font-family:var(--font-heading); font-size:14px; font-weight:700;
+    padding:15px 28px; background:var(--text); color:var(--background);
+    transition:transform .3s var(--ease);
+  }
+  .btn-primary:hover{ transform:translateY(-2px); }
+  .link-back{
+    font-family:var(--font-heading); font-size:13px; font-weight:600; color:var(--muted);
+  }
+  .link-back:hover{ color:var(--text); }
+
+  .recycle-badges{ display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+  .recycle-badge{ font-family:var(--font-heading); font-size:12.5px; font-weight:600; color:var(--coffee); border:1px solid var(--coffee); border-radius:99px; padding:7px 14px; }
+  .proposal-box{ margin-top:56px; padding:20px 24px; border:1px dashed var(--coffee); background:var(--cream); max-width:760px; }
+  .proposal-label{ font-family:var(--font-heading); font-size:11.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--coffee); }
+</style>
+</head>
+<body>
+
+<!-- ============================= -->
+<!-- VIEW 1: VỀ ROUTINE (CONTENT HUB) -->
+<!-- ============================= -->
+<main class="view active" id="view-hub">
+  <div class="wrap">
+
+    <!-- Page title. Edit the text directly below to change the heading. -->
+    <div class="hub-hero">
+      <h1>Về Routine</h1>
+    </div>
+
+    <!-- ============================= -->
+    <!-- ABOUT ROUTINE CARDS -->
+    <!-- ============================= -->
+    <div class="about-grid">
+
+      <!-- CARD 1 -->
+      <div class="about-card reveal">
+        <!-- IMAGE: Vietnam landscape / brand journey -->
+        <div class="ph card-img"><div class="ph-inner"><img src="images/about-journey.jpg" alt="Hành trình của chúng tôi" onerror="this.style.display='none'"></div><span class="ph-tag">Phong Cảnh Việt Nam</span></div>
+        <h3 class="card-title">Hành trình của chúng tôi</h3>
+        <p class="card-desc">Khởi đầu khiêm tốn với mục tiêu vươn ra thế giới của chúng tôi.</p>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="about-card reveal">
+        <!-- IMAGE: Routine lifestyle campaign -->
+        <div class="ph card-img"><div class="ph-inner"><img src="images/about-motto.jpg" alt="Châm ngôn của chúng tôi" onerror="this.style.display='none'"></div><span class="ph-tag">Chiến Dịch Lifestyle</span></div>
+        <h3 class="card-title">Châm ngôn của chúng tôi</h3>
+        <p class="card-desc">Chúng tôi giúp cho cuộc sống của bạn dễ dàng hơn.</p>
+      </div>
+
+      <!-- CARD 3 — SUSTAINABILITY (NEW) -->
+      <div class="about-card clickable card-sustain reveal" onclick="goToSustain()">
+        <!-- IMAGE: Coffee Lovers / materials / community imagery -->
+        <div class="ph card-img"><div class="ph-inner"><img src="images/sustainability-cover.jpg" alt="Hành trình bền vững" onerror="this.style.display='none'"></div><span class="ph-tag">Coffee Lovers · Chất Liệu</span></div>
+        <h3 class="card-title">Hành trình bền vững</h3>
+        <p class="card-desc">Từ những thử nghiệm về chất liệu đến các dự án đồng hành cùng cộng đồng, khám phá những bước Routine đang thực hiện trên hành trình hướng đến thời trang có trách nhiệm hơn.</p>
+        <p class="card-meta">Coffee Lovers · Banana Fiber · Routine × LÀ VIỆT</p>
+        <span class="card-cta">Khám phá →</span>
+      </div>
+
+      <!-- CARD 4 -->
+      <div class="about-card reveal">
+        <!-- IMAGE: Routine flagship store -->
+        <div class="ph card-img"><div class="ph-inner"><img src="images/flagship-quang-trung.jpg" alt="Flagship Quang Trung" onerror="this.style.display='none'"></div><span class="ph-tag">Flagship Routine</span></div>
+        <h3 class="card-title">Flagship Quang Trung</h3>
+        <p class="card-desc">Phối cảnh 360 độ Flagship Quang Trung.</p>
+      </div>
+
+    </div>
+
+    <!-- ============================= -->
+    <!-- LATEST STORIES -->
+    <!-- ============================= -->
+    <div class="stories-label reveal">Câu Chuyện Mới Nhất</div>
+
+    <div class="stories-grid reveal">
+      <!-- IMAGE: Coffee Lovers Series 6 campaign -->
+      <div class="ph card-img"><div class="ph-inner"><img src="images/coffee-lovers-6.jpg" alt="Coffee Lovers 6 campaign" onerror="this.style.display='none'"></div><span class="ph-tag">Chiến Dịch Coffee Lovers Series 6</span></div>
+      <div class="stories-copy">
+        <h3 class="card-title">Coffee Lovers 6</h3>
+        <p class="card-desc">Lấy cảm hứng từ mùa hoa cà phê tại Việt Nam, "Blooming in the Forest" là hành trình tôn vinh sự trưởng thành tự nhiên của mỗi cá nhân.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ============================= -->
+<!-- VIEW 2: HÀNH TRÌNH BỀN VỮNG (SUSTAINABILITY LANDING PAGE) -->
+<!-- ============================= -->
+<main class="view" id="view-sustain">
+
+  <div class="wrap">
+    <a class="breadcrumb" onclick="goToHub()">← Về Routine</a>
+  </div>
+
+  <!-- ============================= -->
+  <!-- HERO / INTRO -->
+  <!-- ============================= -->
+  <section class="sec">
+    <div class="wrap intro-grid">
+      <div>
+        <p class="eyebrow reveal">Hành Trình Trách Nhiệm</p>
+        <h1 class="headline reveal">Tạo nên với<br>nhiều tâm huyết hơn.</h1>
+        <div class="intro-copy reveal">
+          <p class="body-copy">Với Routine, hành trình hướng đến thời trang bền vững bắt đầu từ những lựa chọn cụ thể hơn về chất liệu, cách những vật liệu đã qua sử dụng có thể được trao một vòng đời mới, và cách thời trang có thể tạo thêm giá trị cho cộng đồng.</p>
+          <p>Một hành trình vẫn đang tiếp tục, qua từng sản phẩm, từng bộ sưu tập và những dự án Routine lựa chọn đồng hành.</p>
+        </div>
+      </div>
+      <!-- IMAGE: Routine responsible journey hero -->
+      <div class="ph intro-visual reveal"><div class="ph-inner"><img src="images/hero.jpg" alt="Routine responsible journey" onerror="this.style.display='none'"></div><span class="ph-tag">Routine / Hành Trình Trách Nhiệm</span></div>
+    </div>
+  </section>
+
+  <!-- ============================= -->
+  <!-- OUR MATERIALS & IMPACT (OVERVIEW) -->
+  <!-- ============================= -->
+  <section class="sec" id="impact-overview">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Chất Liệu &amp; Tác Động</p>
+        <h2 class="headline">Một hành trình, qua từng con số.</h2>
+        <p class="sec-desc">Tổng hợp số liệu thật từ các dự án vật liệu và cộng đồng Routine đang thực hiện.</p>
+      </div>
+
+      <div class="impact-grid reveal">
+        <div class="impact-stat">
+          <div class="impact-num" data-count="2022" data-no-group="true">0</div>
+          <div class="impact-label">Coffee Lovers ra mắt</div>
+          <div class="impact-sub">Vật liệu S.Café® từ bã cà phê + chai nhựa đã qua sử dụng</div>
+        </div>
+        <div class="impact-stat">
+          <div class="impact-num">06</div>
+          <div class="impact-label">Series Coffee Lovers</div>
+          <div class="impact-sub">2022 — 2026</div>
+        </div>
+        <div class="impact-stat">
+          <div class="impact-num">95/05</div>
+          <div class="impact-label">Cotton / Sợi Chuối</div>
+          <div class="impact-sub">Denim pha sợi thân chuối, ra mắt 2025</div>
+        </div>
+        <div class="impact-stat">
+          <div class="impact-num" data-count="28000">0</div>
+          <div class="impact-label">Cây giống cà phê TH-A1</div>
+          <div class="impact-sub">Cùng Là Việt, Xuân Trường – Đà Lạt, 2024–2026</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= -->
+  <!-- COFFEE LOVERS -->
+  <!-- ============================= -->
+  <section class="sec" id="coffee-lovers">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">01 / Tái Định Hình Rác Thải</p>
+        <h2 class="headline">Coffee Lovers</h2>
+        <p class="sec-sub">Từ rác thải cà phê đến trang phục hằng ngày</p>
+      </div>
+
+      <div class="cl-layout">
+        <div class="cl-copy reveal">
+          <div class="cl-intro-grid">
+            <div>
+              <p class="body-copy">Ra mắt từ năm 2022, Coffee Lovers là một trong những hành trình chất liệu đặc trưng của Routine. Dòng sản phẩm ứng dụng sợi S.Café®, được phát triển từ bã cà phê và chai nhựa đã qua sử dụng, đưa những vật liệu có khả năng trở thành chất thải trở lại trong một vòng đời mới dưới hình thức trang phục.</p>
+
+              <div class="journey-row" id="journey">
+                <span class="journey-step" data-step="0">BÃ CÀ PHÊ<br>+ CHAI NHỰA ĐÃ QUA SỬ DỤNG</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step" data-step="1">SỢI S.CAFÉ®</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step" data-step="2">TRANG PHỤC ROUTINE</span>
+              </div>
+            </div>
+
+            <div class="cl-side">
+              <div class="cl-props">
+                <span class="cl-prop">Kiểm Soát Mùi</span>
+                <span class="cl-prop">Khô Nhanh</span>
+                <span class="cl-prop">Chống Tia UV</span>
+              </div>
+              <p class="cl-note">Kết cấu xốp tự nhiên của bã cà phê vốn được biết đến với khả năng hấp thụ mùi và thoát ẩm tốt — đây là lý do sợi S.Café® thường được ứng dụng cho các dòng sản phẩm cần đặc tính kiểm soát mùi, khô nhanh và chống tia UV.</p>
+
+              <div class="cl-stats">
+                <div>
+                  <div class="stat-num" data-count="2022" data-no-group="true">0</div>
+                  <div class="stat-cap">Coffee Lovers Ra Mắt</div>
+                </div>
+                <div>
+                  <div class="stat-series">SERIES 06</div>
+                  <div class="stat-cap">2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================= -->
+        <!-- COFFEE LOVERS ARCHIVE — Series 1-6 overview -->
+        <!-- ============================= -->
+        <div class="cl-archive reveal">
+          <p class="eyebrow">Hành Trình Coffee Lovers</p>
+          <h3 class="archive-headline">6 Series.<br>Một Câu Chuyện Tiếp Nối.</h3>
+          <p class="archive-intro">"Qua mỗi series, Coffee Lovers tiếp tục kết nối văn hóa cà phê, thời trang và phong cách sống qua một câu chuyện khác nhau."</p>
+
+          <div class="archive-grid">
+
+              <!-- Series 01 -->
+              <div class="archive-card">
+                <!-- IMAGE: Coffee Lovers Series 1 campaign — Sài Gòn -->
+                <div class="ph archive-thumb"><div class="ph-inner"><img src="images/coffee-series-1.jpg" alt="Coffee Lovers Series 1" onerror="this.style.display='none'"></div></div>
+                <span class="archive-num">01</span>
+                <h4 class="archive-title">Coffee Lovers</h4>
+                <span class="archive-context">Sài Gòn</span>
+                <p class="archive-desc">Nơi hành trình Coffee Lovers bắt đầu, đưa văn hóa cà phê Việt vào ngôn ngữ thời trang đương đại.</p>
+                <span class="archive-cta">Khám phá →</span>
+              </div>
+
+              <!-- Series 02 -->
+              <div class="archive-card">
+                <!-- IMAGE: Coffee Lovers Series 2 campaign — Đắk Lắk -->
+                <div class="ph archive-thumb"><div class="ph-inner"><img src="images/coffee-series-2.jpg" alt="Coffee Lovers Series 2" style="object-position:75% center;" onerror="this.style.display='none'"></div></div>
+                <span class="archive-num">02</span>
+                <h4 class="archive-title">Slower Ways to See the World</h4>
+                <span class="archive-context">Đắk Lắk</span>
+                <p class="archive-desc">Khám phá thế giới bên ngoài để tìm lại nhịp sống và con người bên trong mình.</p>
+                <span class="archive-cta">Khám phá →</span>
+              </div>
+
+              <!-- Series 03 -->
+              <div class="archive-card">
+                <!-- IMAGE: Coffee Lovers Series 3 campaign — Friendship -->
+                <div class="ph archive-thumb"><div class="ph-inner"><img src="images/coffee-series-3.jpg" alt="Coffee Lovers Series 3" onerror="this.style.display='none'"></div></div>
+                <span class="archive-num">03</span>
+                <h4 class="archive-title">Go Together, Grow Together</h4>
+                <span class="archive-context">Tình Bạn</span>
+                <p class="archive-desc">Câu chuyện về tình bạn, những người cùng đi và cùng trưởng thành.</p>
+                <span class="archive-cta">Khám phá →</span>
+              </div>
+
+              <!-- Series 04 -->
+              <div class="archive-card">
+                <!-- IMAGE: Coffee Lovers Series 4 campaign — Friendship without borders -->
+                <div class="ph archive-thumb"><div class="ph-inner"><img src="images/coffee-series-4.jpg" alt="Coffee Lovers Series 4" onerror="this.style.display='none'"></div></div>
+                <span class="archive-num">04</span>
+                <h4 class="archive-title">No Boundaries</h4>
+                <span class="archive-context">Tình Bạn Không Biên Giới</span>
+                <p class="archive-desc">Mở rộng tinh thần kết nối qua những khoảng cách, điểm đến và biên giới.</p>
+                <span class="archive-cta">Khám phá →</span>
+              </div>
+
+              <!-- Series 05 -->
+              <div class="archive-card">
+                <!-- IMAGE: Coffee Lovers Series 5 campaign — Brewing Dreams -->
+                <div class="ph archive-thumb"><div class="ph-inner"><img src="images/coffee-series-5.jpg" alt="Coffee Lovers Series 5" onerror="this.style.display='none'"></div></div>
+                <span class="archive-num">05</span>
+                <h4 class="archive-title">Brewing Dreams</h4>
+                <span class="archive-context">Ước mơ ấp ủ</span>
+                <p class="archive-desc">Những ước mơ và dự định được nuôi dưỡng để từng bước thành hình.</p>
+                <span class="archive-cta">Khám phá →</span>
+              </div>
+
+              <!-- Series 06 — current chapter (same card size as 1-5; badge is an overlay, not extra height) -->
+              <div class="archive-card current">
+                <!-- IMAGE: Coffee Lovers Series 6 campaign — Blooming in the Forest -->
+                <div class="ph archive-thumb">
+                  <div class="ph-inner"><img src="images/coffee-series-6.jpg" alt="Coffee Lovers Series 6 — Blooming in the Forest" onerror="this.style.display='none'"></div>
+                  <span class="archive-current-badge">Hiện tại · 2026</span>
+                </div>
+                <span class="archive-num">06</span>
+                <h4 class="archive-title">Blooming in the Forest</h4>
+                <span class="archive-context">Mùa hoa cà phê Việt Nam</span>
+                <p class="archive-desc">Hành trình trưởng thành tự nhiên, nơi mỗi người phát triển theo nhịp riêng của mình.</p>
+                <span class="archive-cta">Khám phá →</span>
+              </div>
+
+          </div>
+        </div>
+
+        <div class="cl-images reveal">
+          <!-- IMAGE: Coffee Lovers campaign (large hero shot for this section) -->
+          <div class="ph"><div class="ph-inner"><img src="images/coffee-lovers.jpg" alt="Coffee Lovers campaign" onerror="this.style.display='none'"></div><span class="ph-tag">Chiến Dịch Coffee Lovers Series 6</span></div>
+          <!-- IMAGE: S.Café material process — coffee grounds to fabric cycle -->
+          <div class="ph"><div class="ph-inner"><img src="images/scafe-detail.jpg" alt="Quy trình vật liệu S.Café từ bã cà phê đến vải" style="object-fit:contain;background:#241a12;" onerror="this.style.display='none'"></div><span class="ph-tag">Chi Tiết Chất Liệu S.Café</span></div>
+          <!-- IMAGE: garment / stitching detail -->
+          <div class="ph"><div class="ph-inner"><img src="images/garment-detail.jpg" alt="Coffee Lovers garment detail" onerror="this.style.display='none'"></div><span class="ph-tag">Chi Tiết Trang Phục</span></div>
+        </div>
+        <div class="recycle-badges">
+          <span class="recycle-badge">♻ Bã cà phê tái chế</span>
+          <span class="recycle-badge">♻ Chai nhựa tái chế</span>
+        </div>
+        <p class="cl-note" style="margin-top:14px;">S.Café® — từ bã cà phê và chai nhựa tái chế đến chiếc áo thun Coffee Lovers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= -->
+  <!-- BE A BANANA -->
+  <!-- ============================= -->
+  <section class="sec" id="banana">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">02 / Khám Phá Chất Liệu</p>
+        <h2 class="headline">Be a Banana</h2>
+      </div>
+
+      <div class="banana-split reveal">
+        <!-- IMAGE: Banana fiber denim close-up -->
+        <div class="ph banana-visual"><div class="ph-inner"><img src="images/banana-fiber.jpg" alt="Banana fiber denim" onerror="this.style.display='none'"></div><span class="ph-tag">Denim Sợi Chuối</span></div>
+        <div class="banana-right">
+          <div>
+            <div class="comp-row"><span class="comp-num">95</span><span class="comp-label">% Cotton</span></div>
+            <div class="comp-bar"><span style="width:95%;"></span></div>
+            <div class="comp-row"><span class="comp-num">05</span><span class="comp-label">% Sợi Chuối Tái Chế</span></div>
+            <div class="comp-bar"><span style="width:5%;"></span></div>
+          </div>
+          <p class="body-copy">Năm 2025, Routine tiếp tục thử nghiệm vật liệu mới với denim pha sợi chuối. Sợi được phát triển từ phần thân cây chuối sau thu hoạch, mở ra một cách tiếp cận khác trong việc đưa phụ phẩm nông nghiệp trở lại vòng đời vật liệu.</p>
+          <p class="cl-note">Thân cây chuối vốn là phần bị bỏ đi sau mỗi vụ thu hoạch, nhưng vẫn chứa sợi cellulose tự nhiên có thể kéo sợi và pha trộn cùng cotton — một hướng thử nghiệm giúp phụ phẩm nông nghiệp có thêm một vòng đời khác thay vì trở thành chất thải.</p>
+          <p class="sec-sub" style="margin-top:-10px;">Denim Sợi Chuối / 2025</p>
+        </div>
+      </div>
+
+      <!-- Internal note: proposed idea only, NOT a confirmed Routine program. -->
+      <div class="proposal-box reveal">
+        <p class="proposal-label">Ý tưởng đang cân nhắc — chưa phải chương trình chính thức</p>
+        <p class="cl-note" style="margin-top:8px; color:var(--text);">Bên cạnh denim sợi chuối, Routine cũng đang thảo luận thêm vài hướng mở rộng: tái chế các sản phẩm denim cũ, và khuyến khích khách hàng giữ lại túi giấy để tái sử dụng — ví dụ mang túi cũ quay lại cửa hàng khi mua sắm để nhận ưu đãi. Đây là đề xuất nội bộ đang được cân nhắc, chưa triển khai chính thức.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= -->
+  <!-- ROUTINE × LA VIET -->
+  <!-- ============================= -->
+  <section class="sec" id="community">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">03 / Cùng Nhau Phát Triển</p>
+        <h2 class="headline">Từ văn hóa cà phê<br>đến cộng đồng cà phê</h2>
+      </div>
+
+      <div class="lv-top reveal">
+        <p class="body-copy">Bên cạnh câu chuyện chất liệu, Routine cùng LÀ VIỆT đồng hành với cộng đồng trồng cà phê tại Xuân Trường, Đà Lạt thông qua hoạt động trao tặng giống cà phê TH-A1.</p>
+        <div>
+          <div class="lv-number" data-count="28000">0</div>
+          <div class="lv-number-cap">Cây Giống Cà Phê — 2024–2026</div>
+        </div>
+      </div>
+
+      <div class="lv-timeline reveal" id="lv-timeline">
+        <div class="lv-fill" id="lv-fill"></div>
+        <div class="lv-item" data-year="2024"><div class="lv-year">2024</div><div class="lv-count">3.000 cây giống</div></div>
+        <div class="lv-item" data-year="2025"><div class="lv-year">2025</div><div class="lv-count">10.000 cây giống · Lần thứ 2</div></div>
+        <div class="lv-item" data-year="2026"><div class="lv-year">2026</div><div class="lv-count">15.000 cây giống</div></div>
+      </div>
+
+      <p class="cl-note" style="margin-top:28px;">Chương trình được phối hợp thực hiện cùng UBND Phường Xuân Trường – Đà Lạt và Cà Phê Là Việt. Đợt trao tặng lần thứ 2 diễn ra ngày 08/07/2025 tại Xuân Trường, Đà Lạt, với 10.000 cây giống cà phê TH-A1.</p>
+
+      <div class="lv-images reveal">
+        <!-- IMAGE: coffee plantation landscape -->
+        <div class="ph"><div class="ph-inner"><img src="images/coffee-community-plantation.jpg" alt="Coffee plantation" onerror="this.style.display='none'"></div><span class="ph-tag">Vùng Trồng Cà Phê</span></div>
+        <!-- IMAGE: local coffee growers / farmers portrait -->
+        <div class="ph"><div class="ph-inner"><img src="images/coffee-community-growers.jpg" alt="Local coffee growers" onerror="this.style.display='none'"></div><span class="ph-tag">Người Trồng Cà Phê Địa Phương</span></div>
+        <!-- IMAGE: Routine × LÀ VIỆT project activity -->
+        <div class="ph"><div class="ph-inner"><img src="images/routine-la-viet.jpg" alt="Routine x LÀ VIỆT" style="object-fit:contain;background:#fff;" onerror="this.style.display='none'"></div><span class="ph-tag">Routine × LÀ VIỆT</span></div>
+        <!-- IMAGE: coffee seedling close-up -->
+        <div class="ph"><div class="ph-inner"><img src="images/coffee-community-seedlings.jpg" alt="Coffee seedlings" onerror="this.style.display='none'"></div><span class="ph-tag">Cây Giống Cà Phê</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= -->
+  <!-- CONNECT THE STORY -->
+  <!-- ============================= -->
+  <section class="sec" id="connect">
+    <div class="wrap">
+      <h2 class="headline reveal">Từ văn hóa cà phê,<br>đến chất liệu,<br>đến cộng đồng.</h2>
+      <div class="connect-chain reveal" id="chain">
+        <span class="chain-item" data-i="0">Văn Hóa Cà Phê</span><span class="chain-sep">/</span>
+        <span class="chain-item" data-i="1">Rác Thải Cà Phê</span><span class="chain-sep">/</span>
+        <span class="chain-item" data-i="2">Chất Liệu S.Café®</span><span class="chain-sep">/</span>
+        <span class="chain-item" data-i="3">Coffee Lovers</span><span class="chain-sep">/</span>
+        <span class="chain-item" data-i="4">Cộng Đồng Trồng Cà Phê</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= -->
+  <!-- TIMELINE -->
+  <!-- ============================= -->
+  <section class="sec">
+    <div class="wrap">
+      <p class="eyebrow reveal">Tiến Trình Qua Từng Năm</p>
+      <h2 class="headline reveal" style="font-size:clamp(28px,4vw,46px); margin:12px 0 48px;">Một hành trình đang tiếp diễn</h2>
+
+      <div class="btl-track reveal" id="btl-track">
+        <div class="btl-fill" id="btl-fill"></div>
+        <div class="btl-item" data-year="2022"><div class="btl-year">2022</div><div class="btl-text">Coffee Lovers ra mắt</div></div>
+        <div class="btl-item" data-year="2024"><div class="btl-year">2024</div><div class="btl-text">Dự án cộng đồng Routine × LÀ VIỆT bắt đầu</div></div>
+        <div class="btl-item" data-year="2025"><div class="btl-year">2025</div><div class="btl-text">Ra mắt Denim Sợi Chuối</div></div>
+        <div class="btl-item" data-year="2026"><div class="btl-year">2026</div><div class="btl-text">Coffee Lovers đạt Series 6 · 28.000 cây giống cà phê từ 2024</div></div>
+      </div>
+    </div>
+  </section>
+
+
+</main>
+
+<script>
+(function(){
+
+  // -------- view switching --------
+  window.goToSustain = function(){
+    document.getElementById('view-hub').classList.remove('active');
+    document.getElementById('view-sustain').classList.add('active');
+    window.scrollTo(0,0);
+    initRevealFor(document.getElementById('view-sustain'));
+  };
+  window.goToHub = function(){
+    document.getElementById('view-sustain').classList.remove('active');
+    document.getElementById('view-hub').classList.add('active');
+    window.scrollTo(0,0);
+  };
+
+  // -------- reveal on scroll (re-usable, re-observes on view switch) --------
+  function initRevealFor(root){
+    const els = root.querySelectorAll('.reveal:not(.is-visible)');
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('is-visible'); obs.unobserve(e.target); }
+      });
+    }, { threshold:0.15 });
+    els.forEach(el=>obs.observe(el));
+  }
+  initRevealFor(document.getElementById('view-hub'));
+
+  // -------- count-up numbers --------
+  function countUp(el, target, duration){
+    const start = performance.now();
+    const noGroup = el.getAttribute('data-no-group') === 'true';
+    const fmt = (n)=> noGroup ? String(n) : n.toLocaleString('en-US');
+    function step(now){
+      const p = Math.min((now-start)/duration, 1);
+      const eased = 1 - Math.pow(1-p, 3);
+      const val = Math.round((target)*eased);
+      el.textContent = fmt(val);
+      if(p < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+    }
+    requestAnimationFrame(step);
+  }
+  const countEls = document.querySelectorAll('[data-count]');
+  const countObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        countUp(e.target, parseInt(e.target.getAttribute('data-count'),10), 1500);
+        countObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.5 });
+  countEls.forEach(el=>countObserver.observe(el));
+
+  // -------- material journey auto-highlight --------
+  const steps = document.querySelectorAll('.journey-step');
+  const journeyEl = document.getElementById('journey');
+  const journeyObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        let i=0;
+        const iv = setInterval(()=>{
+          steps.forEach((s,idx)=> s.classList.toggle('hi', idx===i));
+          i++;
+          if(i>=steps.length){ clearInterval(iv); }
+        }, 500);
+        journeyObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.5 });
+  if(journeyEl) journeyObserver.observe(journeyEl);
+
+  // -------- community timeline line + dots --------
+  const lvTrack = document.getElementById('lv-timeline');
+  const lvFill = document.getElementById('lv-fill');
+  const lvItems = document.querySelectorAll('.lv-item');
+  const lvObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        lvFill.style.width = '100%';
+        lvItems.forEach((it,i)=> setTimeout(()=> it.classList.add('lit'), 280*i+200));
+        lvObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.4 });
+  if(lvTrack) lvObserver.observe(lvTrack);
+
+  // -------- brand timeline line + dots --------
+  const btlTrack = document.getElementById('btl-track');
+  const btlFill = document.getElementById('btl-fill');
+  const btlItems = document.querySelectorAll('.btl-item');
+  const btlObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        btlFill.style.width = '100%';
+        btlItems.forEach((it,i)=> setTimeout(()=> it.classList.add('lit'), 280*i+200));
+        btlObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.3 });
+  if(btlTrack) btlObserver.observe(btlTrack);
+
+  // -------- connect chain lights up in sequence --------
+  const chain = document.getElementById('chain');
+  const chainItems = document.querySelectorAll('.chain-item');
+  const chainObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        chainItems.forEach((it,i)=> setTimeout(()=> it.classList.add('on'), 240*i+200));
+        chainObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.4 });
+  if(chain) chainObserver.observe(chain);
+
+})();
+</script>
+
+</body>
+</html>
